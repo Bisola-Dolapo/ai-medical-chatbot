@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Health Assistant Chatbot</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f6f9fc;
+      color: #333;
+    }
+    header {
+      background-color: #0077b6;
+      color: white;
+      padding: 2rem;
+      text-align: center;
+    }
+    #chatbox {
+      max-width: 600px;
+      margin: 2rem auto;
+      background: white;
+      padding: 1rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    .chat-log {
+      max-height: 400px;
+      overflow-y: auto;
+      margin-bottom: 1rem;
+    }
+    .message {
+      padding: 0.8rem;
+      margin: 0.4rem 0;
+      border-radius: 10px;
+      line-height: 1.5;
+    }
+    .user {
+      background-color: #e0f7fa;
+      text-align: right;
+    }
+    .bot {
+      background-color: #f1f1f1;
+      text-align: left;
+    }
+    #userInput {
+      display: flex;
+    }
+    #userInput input {
+      flex: 1;
+      padding: 0.8rem;
+      border: 1px solid #ccc;
+      border-radius: 8px 0 0 8px;
+    }
+    #userInput button {
+      padding: 0.8rem 1rem;
+      background-color: #00b4d8;
+      color: white;
+      border: none;
+      border-radius: 0 8px 8px 0;
+      cursor: pointer;
+    }
+    footer {
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.9rem;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Ask Your Health Assistant</h1>
+    <p>Get helpful answers in seconds – powered by AI</p>
+  </header>
+
+  <div id="chatbox">
+    <div class="chat-log" id="chatLog"></div>
+    <div id="userInput">
+      <input type="text" id="messageInput" placeholder="Type your question..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <footer>
+    <p><strong>Note:</strong> This assistant is not a replacement for professional medical advice.</p>
+  </footer>
+
+  <script>
+    const chatLog = document.getElementById('chatLog');
+
+    function addMessage(content, sender) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'message ' + sender;
+      messageDiv.textContent = content;
+      chatLog.appendChild(messageDiv);
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('messageInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      addMessage(text, 'user');
+      input.value = '';
+
+      try {
+        const res = await fetch('https://db7bs3qe.rpcl.app/webhook-test/chatbot-hook
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_message: text })
+        });
+        const data = await res.json();
+        addMessage(data.reply || 'Sorry, no response.', 'bot');
+      } catch (error) {
+        addMessage('Error reaching the assistant. Please try again later.', 'bot');
+      }
+    }
+  </script>
+</body>
+</html>
