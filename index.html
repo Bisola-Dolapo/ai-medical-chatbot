@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -107,8 +107,11 @@
       input.value = '';
 
       try {
-        const res = await fetch('https://db7bs3qe.rpcl.app/webhook-test/chatbot-hook
-          headers: { 'Content-Type': 'application/json' },
+        const res = await fetch('https://db7bs3qe.rpcl.app/webhook/chatbot-hook', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
           body: JSON.stringify({ user_message: text })
         });
         const data = await res.json();
