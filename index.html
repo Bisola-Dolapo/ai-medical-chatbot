@@ -1,129 +1,320 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Health Assistant Chatbot</title>
-
   <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f6f9fc;
-      color: #333;
+    :root{
+      --primary:#0077b6;
+      --accent:#00b4d8;
+      --bg:#f6f9fc;
+      --card:#ffffff;
+      --muted:#666;
+      --success:#2d9d78;
+      --danger:#e05b5b;
     }
-    header {
-      background-color: #0077b6;
-      color: white;
-      padding: 2rem;
-      text-align: center;
+    html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+    body{
+      background:var(--bg);
+      color:#111;
+      display:flex;
+      flex-direction:column;
+      min-height:100vh;
     }
-    #chatbox {
-      max-width: 600px;
-      margin: 2rem auto;
-      background: white;
-      padding: 1rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+    header{
+      background:linear-gradient(90deg,var(--primary),#0a8fb8);
+      color:white;
+      padding:28px 16px;
+      text-align:center;
     }
-    .chat-log {
-      max-height: 400px;
-      overflow-y: auto;
-      margin-bottom: 1rem;
+    header h1{margin:0;font-size:1.6rem;letter-spacing:0.2px;}
+    header p{margin:6px 0 0;font-size:0.95rem;opacity:0.95;}
+
+    main{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px 40px;}
+    .card{
+      width:100%;
+      max-width:860px;
+      background:var(--card);
+      border-radius:14px;
+      box-shadow:0 8px 30px rgba(12,20,30,0.07);
+      padding:20px;
+      box-sizing:border-box;
     }
-    .message {
-      padding: 0.8rem;
-      margin: 0.4rem 0;
-      border-radius: 10px;
-      line-height: 1.5;
+
+    .layout{
+      display:grid;
+      grid-template-columns:260px 1fr;
+      gap:18px;
     }
-    .user {
-      background-color: #e0f7fa;
-      text-align: right;
+
+    /* Sidebar */
+    .sidebar{
+      padding:10px 8px;
     }
-    .bot {
-      background-color: #f1f1f1;
-      text-align: left;
+    .sidebar .meta{font-size:0.95rem;color:#222;margin-bottom:12px;}
+    .chip{display:inline-block;background:#eef7fb;border-radius:8px;padding:6px 10px;font-size:0.85rem;margin:6px 0}
+
+    /* Chat area */
+    .chat-area{display:flex;flex-direction:column;gap:12px;}
+    .title{font-weight:700;font-size:1.25rem;padding:6px 0}
+    .chat-log{
+      background:linear-gradient(180deg, rgba(250,252,253,1), rgba(247,249,250,1));
+      border-radius:10px;
+      padding:12px;
+      min-height:260px;
+      max-height:420px;
+      overflow:auto;
+      box-shadow:inset 0 1px 0 rgba(0,0,0,0.02);
     }
-    #userInput {
-      display: flex;
+
+    .message{padding:10px 14px;border-radius:10px;margin:8px 0;max-width:85%;line-height:1.45;word-wrap:break-word}
+    .user{background:#e6fbff;margin-left:auto;border-bottom-right-radius:4px}
+    .bot{background:#f6f7fb;border-bottom-left-radius:4px}
+
+    .meta-small{font-size:0.8rem;color:var(--muted);margin-top:6px}
+    .controls{display:flex;gap:8px;align-items:center;margin-top:12px}
+    .input{
+      display:flex;gap:0;
+      border-radius:10px;
+      overflow:hidden;
+      box-shadow:0 2px 8px rgba(12,20,30,0.04);
     }
-    #userInput input {
-      flex: 1;
-      padding: 0.8rem;
-      border: 1px solid #ccc;
-      border-radius: 8px 0 0 8px;
+    .input input{
+      flex:1;padding:12px 14px;border:1px solid #e6e9ee;font-size:1rem;border-right:0;background:white;
+      outline:none;
     }
-    #userInput button {
-      padding: 0.8rem 1rem;
-      background-color: #00b4d8;
-      color: white;
-      border: none;
-      border-radius: 0 8px 8px 0;
-      cursor: pointer;
+    .input button{
+      border:0;background:var(--accent);color:white;padding:0 16px;font-weight:600;cursor:pointer;
     }
-    footer {
-      text-align: center;
-      padding: 1rem;
-      font-size: 0.9rem;
-      color: #666;
+    .input input:focus{box-shadow:0 0 0 3px rgba(0,180,216,0.08);}
+
+    /* loading spinner */
+    .spinner{
+      width:22px;height:22px;border-radius:50%;border:3px solid rgba(0,0,0,0.08);border-top-color:var(--accent);animation:spin .9s linear infinite;
+      display:inline-block;margin-right:8px;vertical-align:middle;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* error banner */
+    .error-banner{
+      background:linear-gradient(90deg,#fff1f1,#fff5f5);
+      border-left:4px solid var(--danger);
+      color:var(--danger);
+      padding:10px 12px;border-radius:8px;font-weight:600;
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+    }
+    .error-actions button{background:var(--danger);border:none;color:white;padding:6px 10px;border-radius:6px;cursor:pointer}
+
+    /* small screens */
+    @media (max-width:880px){
+      .layout{grid-template-columns:1fr;align-items:start}
+      .sidebar{order:2}
+    }
+    @media (max-width:480px){
+      header h1{font-size:1.25rem}
+      .card{padding:14px}
+      .chat-log{max-height:320px}
     }
   </style>
 </head>
-
 <body>
   <header>
     <h1>Ask Your Health Assistant</h1>
-    <p>Get helpful answers in seconds – powered by AI</p>
+    <p>Get helpful answers in seconds — powered by AI</p>
   </header>
 
-  <div id="chatbox">
-    <div class="chat-log" id="chatLog"></div>
-    <div id="userInput">
-      <input type="text" id="messageInput" placeholder="Type your question..." />
-      <button onclick="sendMessage()">Send</button>
-    </div>
-  </div>
+  <main>
+    <div class="card" role="main" aria-labelledby="chat-title">
+      <div class="layout">
+        <aside class="sidebar" aria-label="Project info">
+          <div class="meta"><strong>@FlowWithBisola</strong></div>
+          <div class="chip">Tech: Streamlit · ChromaDB · Gemini</div>
+          <div class="chip">Deployment: Vercel / Replit</div>
+          <div class="meta-small">Features: RAG bot, source citation, document upload, conversational UI</div>
+        </aside>
 
-  <footer>
-    <p><strong>Note:</strong> This assistant is not a replacement for professional medical advice.</p>
-  </footer>
+        <section class="chat-area">
+          <div>
+            <div class="title" id="chat-title">Conversation</div>
+            <div class="chat-log" id="chatLog" aria-live="polite" aria-atomic="false"></div>
+            <div id="errorBanner" style="display:none;margin-top:10px;"></div>
+          </div>
+
+          <div class="controls" aria-hidden="false">
+            <div class="input" style="flex:1;">
+              <input id="messageInput" type="text" placeholder="Type your question..." aria-label="Type your question" />
+              <button id="sendBtn" aria-label="Send message">Send</button>
+            </div>
+            <div style="min-width:120px;text-align:right;">
+              <div class="meta-small">Note: Not a replacement for professional medical advice.</div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
 
   <script>
-    const chatLog = document.getElementById('chatLog');
+    // CONFIG
+    const WEBHOOK_URL = 'https://db7bs3qe.rpcl.app/webhook/chatbot-hook'; // replace if needed
 
-    function addMessage(content, sender) {
-      const messageDiv = document.createElement('div');
-      messageDiv.className = 'message ' + sender;
-      messageDiv.textContent = content;
-      chatLog.appendChild(messageDiv);
+    // UI refs
+    const chatLog = document.getElementById('chatLog');
+    const input = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const errorBanner = document.getElementById('errorBanner');
+
+    // helpers
+    function el(tag, className, text){
+      const d = document.createElement(tag);
+      if(className) d.className = className;
+      if(text !== undefined) d.textContent = text;
+      return d;
+    }
+
+    function scrollToBottom(){
       chatLog.scrollTop = chatLog.scrollHeight;
     }
 
-    async function sendMessage() {
-      const input = document.getElementById('messageInput');
-      const text = input.value.trim();
-      if (!text) return;
+    function showError(message){
+      errorBanner.style.display = 'flex';
+      errorBanner.className = 'error-banner';
+      errorBanner.innerHTML = '';
+      const span = el('div', '', message);
+      const actions = el('div','error-actions','');
+      const retry = document.createElement('button');
+      retry.textContent = 'Retry';
+      retry.onclick = () => {
+        errorBanner.style.display = 'none';
+        // attempt resend last message if stored
+        if(window._lastMessage) sendMessage(window._lastMessage);
+      };
+      actions.appendChild(retry);
+      errorBanner.appendChild(span);
+      errorBanner.appendChild(actions);
+    }
 
+    function hideError(){
+      errorBanner.style.display = 'none';
+      errorBanner.innerHTML = '';
+    }
+
+    function addMessage(content, sender){
+      const m = el('div', 'message ' + sender);
+      if(sender === 'bot'){
+        // prepare a placeholder for typing effect
+        const bubble = el('div','bot-text','');
+        bubble.style.whiteSpace='pre-wrap';
+        m.appendChild(bubble);
+        chatLog.appendChild(m);
+        scrollToBottom();
+        return bubble; // return element so caller can type into it
+      } else {
+        m.textContent = content;
+        chatLog.appendChild(m);
+        scrollToBottom();
+        return null;
+      }
+    }
+
+    // typing effect: gradually append characters
+    async function typeText(elem, text, speed = 18){
+      elem.textContent = '';
+      for(let i=0;i<text.length;i++){
+        elem.textContent += text[i];
+        if(i % 8 === 0) scrollToBottom();
+        await new Promise(r => setTimeout(r, speed));
+      }
+    }
+
+    // show spinner inline inside chat while waiting
+    function showLoadingBubble(){
+      const m = el('div','message bot');
+      const loader = document.createElement('span');
+      loader.className = 'spinner';
+      m.appendChild(loader);
+      const label = el('span','',' Thinking...');
+      m.appendChild(label);
+      chatLog.appendChild(m);
+      scrollToBottom();
+      return m;
+    }
+
+    // core send
+    async function sendMessage(presetText){
+      hideError();
+      const text = (presetText !== undefined) ? presetText : input.value.trim();
+      if(!text) return;
+      // remember last message for retry
+      window._lastMessage = text;
+
+      // show user message
       addMessage(text, 'user');
       input.value = '';
+      sendBtn.disabled = true;
 
-      try {
-        const res = await fetch('https://db7bs3qe.rpcl.app/webhook/chatbot-hook', {
+      // show loading bubble
+      const loadingBubble = showLoadingBubble();
+
+      try{
+        const res = await fetch(WEBHOOK_URL, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: {'Content-Type':'application/json'},
           body: JSON.stringify({ user_message: text })
         });
 
+        // remove loading bubble immediately
+        loadingBubble.remove();
+
+        if(!res.ok){
+          // server error
+          const txt = await res.text();
+          console.error('Server error', res.status, txt);
+          showError('Server error: ' + res.status + '. Please try again.');
+          sendBtn.disabled = false;
+          return;
+        }
+
         const data = await res.json();
-        addMessage(data.reply || 'Sorry, no response.', 'bot');
-      } catch (error) {
-        console.error('Error:', error);
-        addMessage('Error reaching the assistant. Please try again later.', 'bot');
+
+        // If the response includes an array of chunks or direct text
+        const replyText = (data && (data.reply || data.answer || data.text)) ? (data.reply || data.answer || data.text) : 'Sorry, no response.';
+
+        // create bot message container and type text into it
+        const botTextElem = addMessage('', 'bot');
+        await typeText(botTextElem, replyText, 14);
+
+        // optional: attach source citations if present
+        if(data.sources && Array.isArray(data.sources) && data.sources.length){
+          const sourcesBlock = el('div','meta-small','Sources: ' + data.sources.join(' · '));
+          chatLog.appendChild(sourcesBlock);
+          scrollToBottom();
+        }
+
+        sendBtn.disabled = false;
+      } catch(err){
+        console.error('Network error', err);
+        loadingBubble.remove();
+        showError('Error reaching the assistant. Please try again later.');
+        sendBtn.disabled = false;
       }
     }
+
+    // UI events
+    sendBtn.addEventListener('click', ()=> sendMessage());
+    input.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter' && !e.shiftKey){
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // small accessibility: focus input on load
+    window.addEventListener('load', ()=> {
+      input.focus();
+    });
   </script>
 </body>
 </html>
